@@ -51,5 +51,115 @@
 			window.ontouchmove = function() { return false; }
 			window.onorientationchange = function() { document.body.scrollTop = 0; }
 		</script>
+
+		<!-- Floating retro CTA (DVD-bounce) ───────────────────────────────── -->
+		<a id="dvd-cta" href="https://retro.kennyhoward.dev">
+			<img src="assets/img/computer.gif" alt="a bouncing retro computer" draggable="false" />
+			<span>go retro</span>
+		</a>
+		<style>
+			@keyframes flashy {
+				0%   { color: yellow; }
+				25%  { color: red; }
+				50%  { color: lime; }
+				75%  { color: magenta; }
+				100% { color: yellow; }
+			}
+			@keyframes dvdAppear {
+				from { opacity: 0; }
+				to   { opacity: 1; }
+			}
+			#dvd-cta {
+				position: fixed;
+				z-index: 9999;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 8px;
+				padding: 18px 22px;
+				border-radius: 3px;
+				text-decoration: none;
+				cursor: pointer;
+				background: rgba(0, 0, 0, 0.52);
+				border: 1px solid rgba(255, 255, 255, 0.10);
+				transition: background 0.2s ease, border-color 0.2s ease;
+				/* Mobile default – pinned bottom-right; JS overrides on desktop */
+				bottom: 72px;
+				right: 20px;
+				user-select: none;
+				-webkit-user-select: none;
+				opacity: 0;
+				animation: dvdAppear 0.5s ease 1.5s forwards;
+			}
+			#dvd-cta:hover {
+				background: rgba(0, 0, 0, 0.76);
+				border-color: rgba(255, 255, 255, 0.32);
+			}
+			#dvd-cta img {
+				width: 84px;
+				height: auto;
+				display: block;
+				image-rendering: pixelated;
+				pointer-events: none;
+			}
+			#dvd-cta span {
+				font-size: 0.95rem;
+				letter-spacing: 0.09em;
+				text-transform: uppercase;
+				white-space: nowrap;
+				font-family: inherit;
+				font-weight: bold;
+				animation: flashy 0.8s linear infinite;
+			}
+		</style>
+		<script>
+			(function () {
+				var SPEED  = 1.8;  /* px per frame  — raise to speed up            */
+				var MOBILE = 736;  /* px breakpoint  — CSS handles layout below this */
+
+				if (window.innerWidth <= MOBILE) return;
+
+				var el     = document.getElementById('dvd-cta');
+				var vx, vy, x, y;
+				var paused  = false;
+				var started = false;
+
+				/* Clear mobile-pinned CSS so JS has full position control */
+				el.style.bottom = 'auto';
+				el.style.right  = 'auto';
+
+				function init() {
+					vx = SPEED * (Math.random() < 0.5 ? 1 : -1);
+					vy = SPEED * (Math.random() < 0.5 ? 1 : -1);
+					x  = Math.random() * Math.max(0, window.innerWidth  - el.offsetWidth);
+					y  = Math.random() * Math.max(0, window.innerHeight - el.offsetHeight);
+					el.style.left = x + 'px';
+					el.style.top  = y + 'px';
+					started = true;
+				}
+
+				function tick() {
+					if (!started) init(); /* wait for first paint so offsetWidth is ready */
+					if (!paused) {
+						var maxX = window.innerWidth  - el.offsetWidth;
+						var maxY = window.innerHeight - el.offsetHeight;
+						x += vx;
+						y += vy;
+						if (x <= 0)    { x = 0;    vx =  Math.abs(vx); }
+						if (x >= maxX) { x = maxX; vx = -Math.abs(vx); }
+						if (y <= 0)    { y = 0;    vy =  Math.abs(vy); }
+						if (y >= maxY) { y = maxY; vy = -Math.abs(vy); }
+						el.style.left = x + 'px';
+						el.style.top  = y + 'px';
+					}
+					requestAnimationFrame(tick);
+				}
+
+				el.addEventListener('mouseenter', function () { paused = true;  });
+				el.addEventListener('mouseleave', function () { paused = false; });
+
+				requestAnimationFrame(tick);
+			}());
+		</script>
 	</body>
 </html>
